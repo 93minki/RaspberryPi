@@ -14,18 +14,19 @@ def onMouse(event, x, y, flags, param):
      
         if drawing:
             param = cv2.rectangle(param, (ix, iy), (x, y), (0, 255, 0), 1)
-            cv2.imshow('param2', param)
+            
     elif event == cv2.EVENT_LBUTTONUP:
       
         drawing = False
         param = cv2.rectangle(param, (ix, iy), (x, y), (0, 255, 0), 1)
         
-        dst = param.copy()
-        roi = param[x, y]
-        dst[x,y] = roi
+        w = x - ix
+        h = y - iy
         
-        cv2.imshow('param2', param)
+        dst = param[iy : iy + h, ix : ix + w]
+        
         cv2.imshow('cut', dst)
+        cv2.imwrite('testimg.jpg',dst)
     
 
 def init():
@@ -40,6 +41,24 @@ def init():
         
         if cv2.waitKey(1) & 0xFF == 27:
             break
+        elif cv2.waitKey(1) &0xFF == ord('q'):
+            ret, frame = cap.read()
+            src = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            templit = cv2.imread('testimg.jpg',cv2.IMREAD_GRAYSCALE)
+            dst = src.copy()
+            
+            result = cv2.matchTemplate(src, templit, cv2.TM_SQDIFF_NORMED)
+            
+            minVal, maxVal, minLoc, maxLoc = cv2.minMaxLoc(result)
+            x, y = minLoc
+            h, w = templit.shape
+            
+            dst = cv2.rectangle(dst,(x,y),(x+w,y+h),(0,0,255),1)
+            cv2.imshow("dst",dst)
+    
+            
+            print('template Matching')
+            
     
     cap.release()
     cv2.destroyAllWindows()
